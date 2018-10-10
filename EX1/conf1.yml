@@ -2,30 +2,6 @@ Description: Ubuntu webserver stack
 
 Resources:
 
-  Instance1:
-    Type: AWS::EC2::Instance
-    Properties:
-      InstanceType: t2.micro
-      ImageId: ami-0773391ae604c49a4            #Ubuntu Server 16.04
-      KeyName: lab_key_3
-      SecurityGroups:
-        -  ex1_student3_sg1
-      Tags:
-        - Key: Name
-          Value: "student3-EX1-INSTANCE1"
-
-  Instance2:
-    Type: AWS::EC2::Instance
-    Properties:
-      InstanceType: t2.micro
-      ImageId: ami-0773391ae604c49a4            #Ubuntu Server 16.04
-      KeyName: lab_key_3
-      SecurityGroups:
-        -  ex1_student3_sg1
-      Tags:
-        - Key: Name
-          Value: "student3-EX1-INSTANCE2"
-
   appSecuritygroup:
       Type: AWS::EC2::SecurityGroup
       Properties:
@@ -40,7 +16,43 @@ Resources:
             FromPort: "80"
             ToPort: "80"
             CidrIp: 0.0.0.0/0
-        VpcId: vpc-b66b6ad1
         Tags:
           - Key: Name
             Value: !Sub "CloudFormation-${AWS::StackName}-AppSecurityGroup"
+
+
+  Instance1:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t2.micro
+      ImageId: ami-0773391ae604c49a4            #Ubuntu Server 16.04
+      KeyName: lab_key_3
+      SecurityGroupIds:
+        - !Ref appSecuritygroup
+      Tags:
+        - Key: Name
+          Value: "student3-EX1-INSTANCE1"
+
+  Instance2:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t2.micro
+      ImageId: ami-0773391ae604c49a4            #Ubuntu Server 16.04
+      KeyName: lab_key_3
+      SecurityGroupIds:
+        - !Ref appSecuritygroup
+      Tags:
+        - Key: Name
+          Value: "student3-EX1-INSTANCE2"
+
+  lab3ELB:
+    Type: AWS::ElasticLoadBalancing::LoadBalancer
+    Properties:
+      LoadBalancerName: "lab3elb"
+      Instances:
+        - !Ref Instance1
+        - !Ref Instance2
+      Listeners:
+        - LoadBalancerPort: '80'
+          InstancePort: '80'
+          Protocol: HTTP
