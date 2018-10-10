@@ -1,7 +1,11 @@
-Description: 'Ubuntu Test'
+Description: Ubuntu webserver stack
 
-  EC2Instance:
+Resources:
+
+  Ec2Instance:
     Type: AWS::EC2::Instance
     Properties:
-      ImageId: "ami-0773391ae604c49a4"
-      Keyname: "lab_key_3"
+      ImageId: ami-0773391ae604c49a4            #Ubuntu Server 16.04
+      KeyName: lab_key_2
+
+  
