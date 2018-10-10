@@ -1,86 +1,79 @@
-AWSTemplateFormatVersion: '2010-09-09'
-Description: 'AWS CloudFormation Sample Template EC2InstanceWithSecurityGroupSample:
-  Create an Amazon EC2 instance running the Amazon Linux AMI. The AMI is chosen based
-  on the region in which the stack is run. This example creates an EC2 security group
-  for the instance to give you SSH access. **WARNING** This template creates an Amazon
-  EC2 instance. You will be billed for the AWS resources used if you create a stack
-  from this template.'
-Parameters:
-  KeyName:
-    Description: Name of an existing EC2 KeyPair to enable SSH access to the instance
-    Type: AWS::EC2::KeyPair::KeyName
-    ConstraintDescription: must be the name of an existing EC2 KeyPair.
-  InstanceType:
-    Description: WebServer EC2 instance type
-    Type: String
-    AllowedValues:
-    - t2.micro
-    ConstraintDescription: must be a valid EC2 instance type.
-  SSHLocation:
-    Description: The IP address range that can be used to SSH to the EC2 instances
-    Type: String
-    MinLength: '9'
-    MaxLength: '18'
-    Default: 0.0.0.0/0
-    AllowedPattern: "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})"
-    ConstraintDescription: must be a valid IP CIDR range of the form x.x.x.x/x.
-Mappings:
-  AWSInstanceType2Arch:
-    t2.micro:
-      Arch: HVM64
+Description: Ubuntu webserver stack
+
+
 Resources:
-  EC2Instance:
+
+  appSecuritygroup:
+      Type: AWS::EC2::SecurityGroup
+      Properties:
+        GroupName: ex1_student3_sg1
+        GroupDescription: "Allow all/tcp out and ssh/tcp, http/tcp in"
+        SecurityGroupIngress:
+          - IpProtocol: tcp
+            FromPort: "22"
+            ToPort: "22"
+            CidrIp: 0.0.0.0/0
+          - IpProtocol: tcp
+            FromPort: "80"
+            ToPort: "80"
+            CidrIp: 0.0.0.0/0
+        VpcId: vpc-b66b6ad1
+        Tags:
+          - Key: Name
+            Value: !Sub "CloudFormation-${AWS::StackName}-AppSecurityGroup"
+
+
+  Instance1:
     Type: AWS::EC2::Instance
     Properties:
-      InstanceType:
-        Ref: InstanceType
-      SecurityGroups:
-      - Ref: InstanceSecurityGroup
-      KeyName:
-        Ref: KeyName
-      ImageId:
-        Fn::FindInMap:
-        - AWSRegionArch2AMI
-        - Ref: AWS::Region
-        - Fn::FindInMap:
-          - AWSInstanceType2Arch
-          - Ref: InstanceType
-          - Arch
-  InstanceSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
+      InstanceType: t2.micro
+      ImageId: ami-0773391ae604c49a4            #Ubuntu Server 16.04
+      KeyName: lab_key_3
+      SecurityGroupIds:
+        - !Ref appSecuritygroup
+      Tags:
+        - Key: Name
+          Value: "student3-EX1-INSTANCE1"
+      UserData:
+        Fn::Base64: !Sub |
+           #!/bin/bash -xe
+           apt update -y
+           apt install -y apache2
+
+  Instance2:
+    Type: AWS::EC2::Instance
     Properties:
-      GroupDescription: Enable SSH access via port 22 + Webserver
-      SecurityGroupIngress:
-      - IpProtocol: tcp
-        FromPort: '22'
-        ToPort: '22'
-        CidrIp:
-          Ref: SSHLocation
-      - IpProtocol: tcp
-        FromPort: '80'
-        ToPort: '80'
-        CidrIp:
-          Ref: SSHLocation
-Outputs:
-  InstanceId:
-    Description: InstanceId of the newly created EC2 instance
-    Value:
-      Ref: EC2Instance
-  AZ:
-    Description: Availability Zone of the newly created EC2 instance
-    Value:
-      Fn::GetAtt:
-      - EC2Instance
-      - AvailabilityZone
-  PublicDNS:
-    Description: Public DNSName of the newly created EC2 instance
-    Value:
-      Fn::GetAtt:
-      - EC2Instance
-      - PublicDnsName
-  PublicIP:
-    Description: Public IP address of the newly created EC2 instance
-    Value:
-      Fn::GetAtt:
-      - EC2Instance
-      - PublicIp
+      InstanceType: t2.micro
+      ImageId: ami-0773391ae604c49a4            #Ubuntu Server 16.04
+      KeyName: lab_key_3
+      SecurityGroupIds:
+        - !Ref appSecuritygroup
+      Tags:
+        - Key: Name
+          Value: "student3-EX1-INSTANCE2"
+      UserData:
+        Fn::Base64: !Sub |
+           #!/bin/bash -xe
+           apt update -y
+           apt install -y apache2
+
+
+  lab3ELB:
+    Type: AWS::ElasticLoadBalancing::LoadBalancer
+    Properties:
+      SecurityGroups:
+        - !Ref appSecuritygroup
+      Instances:
+        - !Ref Instance1
+        - !Ref Instance2
+      Listeners:
+        - LoadBalancerPort: '80'
+          InstancePort: '80'
+          Protocol: TCP
+      Subnets:
+        - subnet-4481bd0d
+        - subnet-9587f0ce
+        - subnet-1e260c79
+      Tags:
+        - Key: Name
+          Value: !Sub "CloudFormation-${AWS::StackName}-ElasticLoadBalancer"
