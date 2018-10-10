@@ -8,10 +8,24 @@ Resources:
       InstanceType: t2.micro
       ImageId: ami-0773391ae604c49a4            #Ubuntu Server 16.04
       KeyName: lab_key_3
+      Tags:
+        - Key: Name
+          Value: "student3-EX1-INSTANCE1"
+
+  Ec2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t2.micro
+      ImageId: ami-0773391ae604c49a4            #Ubuntu Server 16.04
+      KeyName: lab_key_3
+      Tags:
+        - Key: Name
+          Value: "student3-EX1-INSTANCE2"
 
   appSecuritygroup:
       Type: AWS::EC2::SecurityGroup
       Properties:
+        GroupName: ex1_student3_sg1
         GroupDescription: "Allow all/tcp out and ssh/tcp, http/tcp in"
         SecurityGroupIngress:
           - IpProtocol: tcp
