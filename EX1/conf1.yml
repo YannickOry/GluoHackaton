@@ -34,6 +34,11 @@ Resources:
       Tags:
         - Key: Name
           Value: "student3-EX1-INSTANCE1"
+      UserData:
+        Fn::Base64: !Sub |
+           #!/bin/bash -xe
+           apt update -y
+           apt install -y apache2
 
   Instance2:
     Type: AWS::EC2::Instance
@@ -46,41 +51,12 @@ Resources:
       Tags:
         - Key: Name
           Value: "student3-EX1-INSTANCE2"
+      UserData:
+        Fn::Base64: !Sub |
+           #!/bin/bash -xe
+           apt update -y
+           apt install -y apache2
 
-  appLaunchConfiguration:
-    Type: AWS::AutoScaling::LaunchConfiguration
-    Metadata:
-      AWS::CloudFormation::Init:
-        configSets:
-          ConfigSetScript:
-            - ExecuteScripts
-        ExecuteScripts:
-          files:
-            "/root/InstallApache2.sh":
-              content: !Sub |
-                #!/bin/bash
-                # Installs Apache2
-
-                YOURID=$1
-                REGION=$2
-
-                # Set a settings for non interactive mode
-                  export DEBIAN_FRONTEND=noninteractive
-                  export PATH=$PATH:/usr/local/sbin/
-                  export PATH=$PATH:/usr/sbin/
-                  export PATH=$PATH:/sbin
-
-                apt update -y
-                apt install -y apache2
-
-              mode: '000755'
-              owner: root
-              group: root
-          commands:
-            01_installMEMEGEN:
-              command: "/root/InstallApache2.sh"
-              cwd: "~"
-  
 
   lab3ELB:
     Type: AWS::ElasticLoadBalancing::LoadBalancer
