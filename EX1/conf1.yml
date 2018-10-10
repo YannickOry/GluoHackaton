@@ -1,5 +1,6 @@
 Description: Ubuntu webserver stack
 
+
 Resources:
 
   appSecuritygroup:
@@ -16,6 +17,7 @@ Resources:
             FromPort: "80"
             ToPort: "80"
             CidrIp: 0.0.0.0/0
+        VpcId: vpc-b66b6ad1
         Tags:
           - Key: Name
             Value: !Sub "CloudFormation-${AWS::StackName}-AppSecurityGroup"
@@ -45,14 +47,57 @@ Resources:
         - Key: Name
           Value: "student3-EX1-INSTANCE2"
 
+  appLaunchConfiguration:
+    Type: AWS::AutoScaling::LaunchConfiguration
+    Metadata:
+      AWS::CloudFormation::Init:
+        configSets:
+          ConfigSetScript:
+            - ExecuteScripts
+        ExecuteScripts:
+          files:
+            "/root/InstallApache2.sh":
+              content: !Sub |
+                #!/bin/bash
+                # Installs Apache2
+
+                YOURID=$1
+                REGION=$2
+
+                # Set a settings for non interactive mode
+                  export DEBIAN_FRONTEND=noninteractive
+                  export PATH=$PATH:/usr/local/sbin/
+                  export PATH=$PATH:/usr/sbin/
+                  export PATH=$PATH:/sbin
+
+                apt update -y
+                apt install -y apache2
+
+              mode: '000755'
+              owner: root
+              group: root
+          commands:
+            01_installMEMEGEN:
+              command: "/root/InstallApache2.sh"
+              cwd: "~"
+  
+
   lab3ELB:
     Type: AWS::ElasticLoadBalancing::LoadBalancer
     Properties:
-      LoadBalancerName: "lab3elb"
+      SecurityGroups:
+        - !Ref appSecuritygroup
       Instances:
         - !Ref Instance1
         - !Ref Instance2
       Listeners:
         - LoadBalancerPort: '80'
           InstancePort: '80'
-          Protocol: HTTP
+          Protocol: TCP
+      Subnets:
+        - subnet-4481bd0d
+        - subnet-9587f0ce
+        - subnet-1e260c79
+      Tags:
+        - Key: Name
+          Value: !Sub "CloudFormation-${AWS::StackName}-ElasticLoadBalancer"
