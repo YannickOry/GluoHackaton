@@ -2,22 +2,26 @@ Description: Ubuntu webserver stack
 
 Resources:
 
-  Ec2Instance:
+  Instance1:
     Type: AWS::EC2::Instance
     Properties:
       InstanceType: t2.micro
       ImageId: ami-0773391ae604c49a4            #Ubuntu Server 16.04
       KeyName: lab_key_3
+      SecurityGroups:
+        -  ex1_student3_sg1
       Tags:
         - Key: Name
           Value: "student3-EX1-INSTANCE1"
 
-  Ec2Instance:
+  Instance2:
     Type: AWS::EC2::Instance
     Properties:
       InstanceType: t2.micro
       ImageId: ami-0773391ae604c49a4            #Ubuntu Server 16.04
       KeyName: lab_key_3
+      SecurityGroups:
+        -  ex1_student3_sg1
       Tags:
         - Key: Name
           Value: "student3-EX1-INSTANCE2"
