@@ -5,7 +5,24 @@ Resources:
   Ec2Instance:
     Type: AWS::EC2::Instance
     Properties:
+      InstanceType: t2.micro
       ImageId: ami-0773391ae604c49a4            #Ubuntu Server 16.04
-      KeyName: lab_key_2
+      KeyName: lab_key_3
 
-  
+  appSecuritygroup:
+      Type: AWS::EC2::SecurityGroup
+      Properties:
+        GroupDescription: "Allow all/tcp out and ssh/tcp, http/tcp in"
+        SecurityGroupIngress:
+          - IpProtocol: tcp
+            FromPort: "22"
+            ToPort: "22"
+            CidrIp: 0.0.0.0/0
+          - IpProtocol: tcp
+            FromPort: "80"
+            ToPort: "80"
+            CidrIp: 0.0.0.0/0
+        VpcId: vpc-b66b6ad1
+        Tags:
+          - Key: Name
+            Value: !Sub "CloudFormation-${AWS::StackName}-AppSecurityGroup"
